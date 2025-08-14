@@ -2,156 +2,194 @@ from datetime import datetime
 import random
 import time
 
-
+# In-memory "database" of accounts
 all_bank_accounts = {}
-#Welcome Message
-def welcome_message():   
-    return "Welcome to Foxy Banking App!, how can we serve you today?"
-welcome_message()
 
-#Goodbye Message
+# ---------------- Messages ----------------
+def welcome_message():
+    return "Welcome to Foxy Banking App! How can we serve you today?"
+
 def final_greeting():
-    return "Thank you for your banking with us, Goodbye."
-final_greeting()   
+    return "Thank you for banking with us. Goodbye."
 
-#Generate Account Number
-def generate_acct_numb(acct_type):
+# ---------------- Utilities ----------------
+def _loading(msg="Processing", dots=3, delay=0.25):
+    print(f"\n{msg}", end="")
+    for _ in range(dots):
+        time.sleep(delay)
+        print(".", end="", flush=True)
+    print()
+
+def _require_account(acct_number: str) -> dict:
+    """Fetch an account or raise a clear error."""
+    acct = all_bank_accounts.get(acct_number)
+    if not acct:
+        raise KeyError("Account not found.")
+    return acct
+
+def generate_acct_numb(acct_type: str) -> str:
+    """acct_type: 'g' (Gold), 's' (Savings), 'c' (Chequing)"""
     if acct_type == 'g':
-         base_number = "1010"
+        base = "1010"
     elif acct_type == 's':
-         base_number = "2020"
+        base = "2020"
     elif acct_type == 'c':
-        base_number = "3030"
-    
-    acct_numb = ""
-    for i in range(6):
-        random_acct_num = random.randint(0,9)
-        acct_numb += str(random_acct_num)
-    final_acct_numb = base_number + acct_numb
-    return final_acct_numb
+        base = "3030"
+    else:
+        raise ValueError("Invalid account type. Use 'g', 's', or 'c'.")
+    suffix = "".join(str(random.randint(0, 9)) for _ in range(6))
+    return base + suffix
 
-generate_acct_numb()
-
-#Bank's main menu for selection   
-def main_menu():
-    continue_main_menu = True
-    
-    while continue_main_menu:
-        first_message = welcome_message()
-        open_acct = input("To Open an Account, press '1': ")   
-        existing_acct = input("For an Existing Account holder, press '2': ")
-        debit_acct = input("To debit your account, press '3': ")
-        credit_acct = input("To credit your account, press '4'")
-        check_acct = input("To check your account, press 8")
-        close_acct = input("To close your account, press '5': ")
-        exit_menu = input("To exit the menu selection press 'x': ").title()
-        
-        if open_acct == 1:
-            operate_open_acct = create_account()
-        elif existing_acct == 2:
-            ask_exisiting_acct = input("What will like to do today? To Debit your account press 'd' OR To Credit your account press 'c'").title()
-            if ask_exisiting_acct == 'd':
-                operate_existing_acct = debit_account()
-            elif ask_exisiting_acct == 'c':
-                operate_existing_acct = credit_account()
-            elif ask_exisiting_acct == 'k':
-                operate_existing_acct == check_account_info()
-            elif ask_exisiting_acct != 'd' or ask_exisiting_acct != 'c' or ask_exisiting_acct != 'k':
-                return_to_menu = input("Invalid entry, press 'f' to go back to the previous menu")
-                if return_to_menu == 'f':
-                    back_to_menu = main_menu()
-        elif close_acct == '4':
-            operate_close_account = close_account()        
-        elif exit_menu == 'x':
-            continue_main_menu = False
-            last_message = final_greeting()
-    
-    
-    return first_message, open_acct, existing_acct, debit_acct, credit_acct, close_acct, exit_menu, last_message, operate_open_acct, operate_existing_acct, operate_close_account, back_to_menu, check_acct
-    
-main_menu()
-
+# ---------------- Operations ----------------
 def create_account():
-    open_acct = input("To Open an Account, press 1: ")
-    if open_acct == "1":
-        acct_type = input("What kind of account would you like to open? "\
-            "press 'g' for 'Gold Account',"\
-            "OR press 's' for 'Savings',"\
-            "OR press 'c' for 'Chequing': ").strip().lower()
-        
-        print("\nProcessing account creation", end="")
-        for _ in range(3):  
-            time.sleep(0.5)  
-            print(".", end="", flush=True)
-        print("\n")  
-        
-        new_acct = {
-            'Account Type': "Gold" if acct_type == 'g' else "Savings" if acct_type == 's' else "Chequing",
-            'Account Number': generate_acct_numb(acct_type),
-            'Account Bal': 0
-        }
-        
-        print("Kindly provide the following details below: ")
-        first_name = str(input("Enter your first name: "))
-        new_acct['First Name'] = first_name
-        last_name = str(input("Enter your last name: "))
-        new_acct['Last Name'] = last_name
-        
-        while True:
-            try:
-                dob = input("Enter your date of birth (DD-MM-YYYY): ")
-                date_of_birth = datetime.strptime(dob, "%d-%m-%Y").date()
-                new_acct['Date of Birth'] = date_of_birth
-                break
-            except ValueError:
-                print("Invalid date format! Please use DD-MM-YYYY")
-                continue
-        
-        all_bank_accounts[new_acct['Account Number']] = {
-            'Account Type': new_acct['Account Type'],
-            'Account Number': new_acct['Account Number'],
-            'Account Bal': new_acct['Account Bal'],
-            'First Name': new_acct['First Name'],
-            'Last Name': new_acct['Last Name'],
-            'Date of Birth': new_acct['Date of Birth']
-        }
-        
-        print("\nFinalizing account creation", end="")
-        for _ in range(3):
-            time.sleep(0.3)
-            print(".", end="", flush=True)
-        print("\n")
-        
-        print("="*50)
-        print("🎉 Account Created Successfully! 🎉")
-        print("="*50)
-        print(f"Account Holder: {first_name} {last_name}")
-        print(f"Account Type: {new_acct['Account Type']}")
-        print(f"Account Number: {new_acct['Account Number']}")
-        print(f"Account Bal: ${new_acct['Account Bal']}")
-        print("="*50)
-        
-        return new_acct
-    
-    return None
+    print("\n=== Open an Account ===")
+    acct_type = input("Type ('g' Gold, 's' Savings, 'c' Chequing): ").strip().lower()
+    if acct_type not in ('g', 's', 'c'):
+        print("Invalid type. Please choose 'g', 's', or 'c'.")
+        return
 
-create_account()
+    first_name = input("First name: ").strip().title()
+    last_name  = input("Last name: ").strip().title()
 
+    # Date of birth with validation
+    while True:
+        dob = input("Date of birth (DD-MM-YYYY): ").strip()
+        try:
+            date_of_birth = datetime.strptime(dob, "%d-%m-%Y").date()
+            break
+        except ValueError:
+            print("Invalid date format. Please use DD-MM-YYYY.")
 
-def debit_account():
-    print("")
-           
-debit_account()
+    acct_number = generate_acct_numb(acct_type)
+    acct_label  = "Gold" if acct_type == 'g' else "Savings" if acct_type == 's' else "Chequing"
+
+    all_bank_accounts[acct_number] = {
+        'Account Type' : acct_label,
+        'Account Number': acct_number,
+        'Account Bal'  : 0.0,
+        'First Name'   : first_name,
+        'Last Name'    : last_name,
+        'Date of Birth': date_of_birth
+    }
+
+    _loading("Finalizing account creation")
+    print("🎉 Account Created 🎉")
+    print(f"Holder : {first_name} {last_name}")
+    print(f"Type   : {acct_label}")
+    print(f"Number : {acct_number}")
+    print(f"Balance: ${all_bank_accounts[acct_number]['Account Bal']:.2f}")
 
 def credit_account():
-    print("")
-    
-credit_account()
+    print("\n=== Credit Account ===")
+    acct_number = input("Account Number: ").strip()
+    try:
+        acct = _require_account(acct_number)
+    except KeyError as e:
+        print(e)
+        return
 
+    try:
+        amount = float(input("Amount to credit: ").strip())
+        if amount <= 0:
+            print("Amount must be positive.")
+            return
+    except ValueError:
+        print("Invalid amount.")
+        return
 
+    acct['Account Bal'] = float(acct.get('Account Bal', 0.0)) + amount
+    _loading("Applying credit")
+    print(f"✅ Credited ${amount:.2f}. New balance: ${acct['Account Bal']:.2f}")
+
+def debit_account():
+    print("\n=== Debit Account ===")
+    acct_number = input("Account Number: ").strip()
+    try:
+        acct = _require_account(acct_number)
+    except KeyError as e:
+        print(e)
+        return
+
+    try:
+        amount = float(input("Amount to debit: ").strip())
+        if amount <= 0:
+            print("Amount must be positive.")
+            return
+    except ValueError:
+        print("Invalid amount.")
+        return
+
+    current = float(acct.get('Account Bal', 0.0))
+    if current < amount:
+        print("❌ Insufficient funds.")
+        return
+
+    acct['Account Bal'] = current - amount
+    _loading("Processing debit")
+    print(f"✅ Debited ${amount:.2f}. New balance: ${acct['Account Bal']:.2f}")
+
+def check_account_info():
+    print("\n=== Check Account ===")
+    acct_number = input("Account Number: ").strip()
+    try:
+        acct = _require_account(acct_number)
+    except KeyError as e:
+        print(e)
+        return
+
+    print("-" * 50)
+    print(f"Name         : {acct['First Name']} {acct['Last Name']}")
+    print(f"Type         : {acct['Account Type']}")
+    print(f"Number       : {acct['Account Number']}")
+    print(f"Date of Birth: {acct['Date of Birth']}")
+    print(f"Balance      : ${acct['Account Bal']:.2f}")
+    print("-" * 50)
 
 def close_account():
-    print("")
+    print("\n=== Close Account ===")
+    acct_number = input("Account Number: ").strip()
+    if acct_number in all_bank_accounts:
+        confirm = input("Type 'YES' to confirm closure: ").strip().upper()
+        if confirm == "YES":
+            del all_bank_accounts[acct_number]
+            _loading("Closing account")
+            print("✅ Account closed.")
+        else:
+            print("Cancelled.")
+    else:
+        print("Account not found.")
 
-close_account()    
-    
+# ---------------- Menu ----------------
+def main_menu():
+    print(welcome_message())
+    while True:
+        print("""
+Choose an option:
+ 1) Open an Account
+ 2) Credit Account
+ 3) Debit Account
+ 4) Check Account
+ 5) Close Account
+ x) Exit
+""")
+        choice = input("Enter choice: ").strip().lower()
+
+        if choice == "1":
+            create_account()
+        elif choice == "2":
+            credit_account()
+        elif choice == "3":
+            debit_account()
+        elif choice == "4":
+            check_account_info()
+        elif choice == "5":
+            close_account()
+        elif choice == "x":
+            print(final_greeting())
+            break
+        else:
+            print("Invalid choice, try again.")
+
+if __name__ == "__main__":
+    main_menu()
+
