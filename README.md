@@ -38,5 +38,5 @@ This project demonstrates Python fundamentals including:
 
 3. Run the app:
    ```bash
-   python main.py
+   python3 main.py
 
